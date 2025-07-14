@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: worker
     name: telegram-bot-vip
     env: python
     plan: free
