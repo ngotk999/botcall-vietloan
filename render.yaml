@@ -6,3 +6,4 @@ services:
     buildCommand: ""
     startCommand: "python 999.py"
     autoDeploy: true
+    runtime: python3.10
