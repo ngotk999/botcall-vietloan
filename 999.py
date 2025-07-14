@@ -1,20 +1,21 @@
 
+import json
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+)
 from keep_alive import keep_alive
-import json, os
 
 TOKEN = "7388356518:AAFfaAm0IwpP79ySb3FGZAp36ePgGxG0kbc"
 ADMIN_ID = 6043728545
-
 GROUPS = [
-    "@baogau",
-    "@DuyetRutTeck",
-    "@AppGameOnline9",
-    "@ChatXocDia88",
-    "@sanchoisangai3"
+    "@baogau", "@DuyetRutTeck", "@AppGameOnline9",
+    "@ChatXocDia88", "@sanchoisangai3"
 ]
-
 DATA_FILE = "user_data.json"
 
 def load_data():
@@ -32,13 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(user.id)
     data = load_data()
     if user_id not in data:
-        data[user_id] = {
-            "invited": [],
-            "ref": None,
-            "withdrawn": False,
-            "bank": None,
-            "name": user.full_name
-        }
+        data[user_id] = {"invited": [], "ref": None, "withdrawn": False, "bank": None, "name": user.full_name}
         save_data(data)
 
     args = context.args
@@ -46,13 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ref_id = args[0]
         if ref_id != user_id and user_id not in data.get(ref_id, {}).get("invited", []):
             if ref_id not in data:
-                data[ref_id] = {
-                    "invited": [],
-                    "ref": None,
-                    "withdrawn": False,
-                    "bank": None,
-                    "name": ""
-                }
+                data[ref_id] = {"invited": [], "ref": None, "withdrawn": False, "bank": None, "name": ""}
             data[ref_id]["invited"].append(user_id)
             save_data(data)
 
@@ -69,7 +58,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     group_list = "\n".join([f"{group_status[i]} {GROUPS[i]}" for i in range(len(GROUPS))])
     message = f"📢 Vui lòng tham gia các nhóm sau:\n{group_list}"
-
     keyboard = [[InlineKeyboardButton("✅ Xác Minh", callback_data="verify")]]
     await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
 
@@ -101,11 +89,11 @@ async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💰 Số tiền hiện có: {money} VNĐ\n"
         )
         if can_withdraw:
-            text += "\n💳 Bạn đủ điều kiện rút tiền!\n👉 Hãy nhập lệnh:\n/rut <ngân hàng>-<Họ tên>-<Số tài khoản>\n\nVí dụ:\n/rut Vietcombank-Nguyễn Văn A-0123456789"
+            text += "\n💳 Nhập lệnh /rut <ngân hàng>-<Họ tên>-<STK>"
         elif data[user_id].get("withdrawn", False):
             text += "\n✅ Bạn đã rút tiền trước đó."
         else:
-            text += "\n🔺 Mời thêm để đạt đủ 20K (1 lượt mời = 1K)"
+            text += "\n🔺 Mời thêm để đạt 20K (1 lượt = 1K)"
 
         menu = [[
             InlineKeyboardButton("💳 Rút Tiền", callback_data="rut"),
@@ -117,7 +105,7 @@ async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(menu))
     else:
         group_list = "\n".join([f"{group_status[i]} {GROUPS[i]}" for i in range(len(GROUPS))])
-        msg = f"❌ Bạn chưa tham gia đủ nhóm!\n\n📢 Tham gia đủ các nhóm sau:\n{group_list}"
+        msg = f"❌ Bạn chưa tham gia đủ nhóm!\n\n📢 Cần tham gia đủ:\n{group_list}"
         keyboard = [[InlineKeyboardButton("✅ Xác Minh Lại", callback_data="verify")]]
         await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
 
@@ -125,9 +113,8 @@ async def handle_rut(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     data = load_data()
     if user_id not in data or data[user_id].get("withdrawn"):
-        await update.message.reply_text("❌ Bạn không đủ điều kiện hoặc đã rút trước đó.")
+        await update.message.reply_text("❌ Bạn không đủ điều kiện hoặc đã rút rồi.")
         return
-
     try:
         args = update.message.text.split(" ", 1)[1]
         bank_info = args.strip()
@@ -135,21 +122,20 @@ async def handle_rut(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data[user_id]["bank"] = bank_info
         save_data(data)
 
-        buttons = [
-            [
-                InlineKeyboardButton("✅ Thành Công", callback_data=f"approve_{user_id}"),
-                InlineKeyboardButton("❌ Không Thành Công", callback_data=f"deny_{user_id}")
-            ]
-        ]
-
+        buttons = [[
+            InlineKeyboardButton("✅ Thành Công", callback_data=f"approve_{user_id}"),
+            InlineKeyboardButton("❌ Không Thành Công", callback_data=f"deny_{user_id}")
+        ]]
         await context.bot.send_message(
             chat_id=ADMIN_ID,
-            text=f"📥 Yêu cầu rút tiền từ ID {user_id}:\n{bank_info}",
+            text=f"📥 Rút tiền từ {user_id}:\n{bank_info}",
             reply_markup=InlineKeyboardMarkup(buttons)
         )
-        await update.message.reply_text("📨 Đã gửi yêu cầu rút tiền tới Admin. Vui lòng chờ duyệt!")
+        await update.message.reply_text("✅ Đã gửi yêu cầu đến Admin, vui lòng chờ!")
     except:
-        await update.message.reply_text("❌ Sai cú pháp! Vui lòng dùng:\n/rut <ngân hàng>-<Họ tên>-<STK>")
+        await update.message.reply_text(
+            "❌ Sai cú pháp! Dùng:\n/rut <ngân hàng>-<Họ tên>-<STK>"
+        )
 
 async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -159,15 +145,14 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if cb_data.startswith("approve_"):
         uid = cb_data.split("_")[1]
-        await context.bot.send_message(chat_id=int(uid), text="✅ Rút tiền thành công! Hãy kiểm tra tài khoản của bạn.")
-        await query.edit_message_text("🟢 Đã xử lý: Thành công")
-
+        await context.bot.send_message(chat_id=int(uid), text="✅ Rút tiền thành công!")
+        await query.edit_message_text("🟢 Admin xử lý: Thành công")
     elif cb_data.startswith("deny_"):
         uid = cb_data.split("_")[1]
         data[uid]["withdrawn"] = False
         save_data(data)
-        await context.bot.send_message(chat_id=int(uid), text="❌ Rút tiền không thành công. Vui lòng thử lại sau hoặc liên hệ Admin.")
-        await query.edit_message_text("🔴 Đã xử lý: Không thành công")
+        await context.bot.send_message(chat_id=int(uid), text="❌ Rút tiền không thành công.")
+        await query.edit_message_text("🔴 Admin xử lý: Thất bại")
 
 async def extra_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -176,22 +161,24 @@ async def extra_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(query.from_user.id)
 
     if query.data == "rut":
-        await query.message.reply_text("💳 Hãy nhập lệnh:\n/rut <ngân hàng>-<Họ tên>-<Số tài khoản>")
+        await query.message.reply_text("💳 Nhập lệnh:\n/rut <ngân hàng>-<Họ tên>-<Số tài khoản>")
     elif query.data == "account":
         user = data.get(user_id, {})
         name = user.get("name", "Ẩn danh")
         invited = user.get("invited", [])
         balance = len(invited) * 1000
-        await query.message.reply_text(f"🏆Tên: {name}\n💰Số Dư: {balance} Đ\n🆔ID Của Bạn: {user_id}")
+        await query.message.reply_text(f"🏆Tên: {name}\n💰Số dư: {balance} VNĐ\n🆔ID: {user_id}")
     elif query.data == "stats":
         total_users = len(data)
         total_invites = sum(len(u.get("invited", [])) for u in data.values())
-        await query.message.reply_text(f"📊 Tổng người dùng: {total_users}\n👥 Tổng lượt mời: {total_invites}")
+        await query.message.reply_text(f"📊 Tổng user: {total_users}\n👥 Tổng mời: {total_invites}")
     elif query.data == "support":
-        await query.message.reply_text("☎ Liên hệ hỗ trợ: @admin hoặc nhóm hỗ trợ")
+        await query.message.reply_text("☎ Liên hệ hỗ trợ: @admin")
 
-# Chạy bot
-if __name__ == "__main__":
+# RUN BOT CHUẨN ASYNC
+import asyncio
+
+async def main():
     keep_alive()
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -199,4 +186,7 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
     app.add_handler(CallbackQueryHandler(admin_callback, pattern="^(approve_|deny_).*$"))
     app.add_handler(CallbackQueryHandler(extra_buttons, pattern="^(rut|account|stats|support)$"))
-    app.run_polling()
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())
