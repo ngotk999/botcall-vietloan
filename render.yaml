@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: telegram-bot-vip
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: "python 999.py"
+    autoDeploy: true
