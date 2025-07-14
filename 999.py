@@ -200,8 +200,9 @@ async def extra_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 import asyncio
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 
-async def main()
+async def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
