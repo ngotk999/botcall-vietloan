@@ -1,6 +1,7 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from keep_alive import keep_alive
-keep_alive()
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes from keep_alive import keep_alive import json, os
+import json, os
 
 TOKEN = "7388356518:AAFfaAm0IwpP79ySb3FGZAp36ePgGxG0kbc"
 ADMIN_ID = 6043728545  # Thay bằng Telegram ID thật của admin
@@ -148,5 +149,14 @@ elif query.data == "support":
 
 Run bot
 
-if name == "main": keep_alive() app = ApplicationBuilder().token(TOKEN).build() app.add_handler(CommandHandler("start", start)) app.add_handler(CommandHandler("rut", handle_rut)) app.add_handler(CallbackQueryHandler(verify, pattern="^verify$")) app.add_handler(CallbackQueryHandler(admin_callback, pattern="^(approve_|deny_).*$")) app.add_handler(CallbackQueryHandler(extra_buttons, pattern="^(rut|account|stats|support)$")) app.run_polling()
+if __name__ == "__main__":
+    from keep_alive import keep_alive
+    keep_alive()
 
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("rut", handle_rut))
+    app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
+    app.add_handler(CallbackQueryHandler(admin_callback, pattern="^(approve_|deny_).*$"))
+    app.add_handler(CallbackQueryHandler(extra_buttons, pattern="^(rut|account|stats|support)$"))
+    app.run_polling()
