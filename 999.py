@@ -1,3 +1,5 @@
+from keep_alive import keep_alive
+keep_alive()
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes from keep_alive import keep_alive import json, os
 
 TOKEN = "7388356518:AAFfaAm0IwpP79ySb3FGZAp36ePgGxG0kbc"
